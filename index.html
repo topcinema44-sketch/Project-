@@ -1,136 +1,55 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NUSATASK — Earning Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nusa Project</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Splash -->
-  <section id="splash" class="screen center">
-    <div class="card splash-card">
-      <div class="logo">NT</div>
-      <h1>NUSATASK</h1>
-      <p class="muted">Menghubungkan Anda ke peluang penghasilan</p>
-      <div class="loader"><div class="loader-bar" id="loaderBar"></div></div>
-    </div>
-  </section>
+  <!-- Splash Screen -->
+  <div id="splash" class="page active">
+    <h1>🌟 Selamat Datang 🌟</h1>
+    <p>Loading...</p>
+  </div>
 
-  <!-- Auth -->
-  <section id="auth" class="screen center hidden">
-    <div class="card auth-card">
-      <div class="row">
-        <div class="logo-sm">NT</div>
-        <div>
-          <h2>Selamat datang</h2>
-          <p class="muted">Registrasi menggunakan email. Setelah berhasil, auto login.</p>
-        </div>
-      </div>
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Password (min 6)" />
-      <button id="registerBtn" class="btn primary">Daftar / Masuk</button>
-      <p id="authMsg" class="muted small"></p>
-    </div>
-  </section>
+  <!-- Auth (Register/Login) -->
+  <div id="auth" class="page">
+    <h2>Masuk / Daftar</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
+  </div>
 
-  <!-- Warning -->
-  <section id="warning" class="screen center hidden">
-    <div class="card">
-      <h3>Peringatan Keamanan</h3>
-      <p class="muted">Segala bentuk hack, nuyul, manipulasi data akan dibanned otomatis. Sistem memantau anomali perangkat & IP.</p>
-      <button id="continueWarn" class="btn" disabled>Continue (5)</button>
-      <p class="small muted">Tunggu 5 detik sebelum melanjutkan.</p>
-    </div>
-  </section>
+  <!-- Warning Page -->
+  <div id="warning" class="page">
+    <h2>⚠️ Peringatan</h2>
+    <p>Gunakan aplikasi ini dengan bijak.</p>
+    <button onclick="showPage('dashboard')">Lanjut</button>
+  </div>
 
   <!-- Dashboard -->
-  <main id="app" class="hidden">
-    <header class="topbar">
-      <div class="container">
-        <div class="brand">NUSATASK <span class="uid" id="uidShort"></span></div>
-        <div class="balance">Saldo: <span id="balance">Rp 0</span></div>
-      </div>
-    </header>
+  <div id="dashboard" class="page">
+    <h2>Dashboard</h2>
+    <p>Saldo: <span id="saldo">0</span></p>
+    <button onclick="showPage('superBonus')">🎁 Super Bonus</button>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-    <section class="container maingrid">
-      <!-- Cards -->
-      <div class="card reward-card">
-        <div class="card-head">
-          <div>
-            <h4>MENGHASILKAN</h4>
-            <p class="muted">Monetag — Rewarded</p>
-          </div>
-          <div class="limit">Limit: <span id="limit1">0/20</span></div>
-        </div>
-        <button id="btn1" class="btn primary">Tonton Iklan & Dapatkan Reward</button>
-        <div class="muted small" id="cd1"></div>
-        <div class="progress"><div id="pb1" class="progress-bar"></div></div>
-      </div>
+  <!-- Super Bonus -->
+  <div id="superBonus" class="page">
+    <h2>🎉 Super Bonus</h2>
+    <button id="rewardBtn">Terima Reward</button>
+    <button onclick="showPage('dashboard')">Kembali</button>
+  </div>
 
-      <div class="card reward-card">
-        <div class="card-head">
-          <div>
-            <h4>XSTRA BONUS</h4>
-            <p class="muted">Onclicka — TMA Rewarded Video (Spot 6089688)</p>
-          </div>
-          <div class="limit">Limit: <span id="limit2">0/20</span></div>
-        </div>
-        <button id="btn2" class="btn primary">Mainkan Video & Dapatkan Reward</button>
-        <div class="muted small" id="cd2"></div>
-        <div class="progress"><div id="pb2" class="progress-bar"></div></div>
-      </div>
+  <!-- Tempat iklan -->
+  <div id="adContainer" class="hidden"></div>
 
-      <div class="card reward-card">
-        <div class="card-head">
-          <div>
-            <h4>SUPER BONUS</h4>
-            <p class="muted">Onclicka + Click Adila (2 tahap)</p>
-          </div>
-          <div class="limit">Limit: <span id="limit3">0/15</span></div>
-        </div>
-        <button id="btn3" class="btn primary">Mulai Misi 2 Halaman</button>
-        <div class="muted small" id="cd3"></div>
-        <div class="progress"><div id="pb3" class="progress-bar"></div></div>
-      </div>
-
-      <p class="muted small">Catatan: Reset harian pukul <b>06:00 WIB</b>. Manipulasi jam perangkat tidak berpengaruh.</p>
-
-      <div class="card history-card">
-        <h4>Riwayat Reward</h4>
-        <ul id="historyList" class="history-list muted"></ul>
-      </div>
-
-    </section>
-  </main>
-
-  <!-- Super Bonus Pages -->
-  <section id="page1" class="screen hidden">
-    <div class="container">
-      <h3>SUPER BONUS — Halaman 1</h3>
-      <p class="muted">Scroll ke bawah lalu tekan Continue (5s).</p>
-      <div id="page1Ads" class="ad-slot"></div>
-      <div id="letters" class="az-grid"></div>
-      <div class="spacer"></div>
-      <button id="page1Continue" class="btn" disabled>Continue (5)</button>
-    </div>
-  </section>
-
-  <section id="page2" class="screen hidden">
-    <div class="container">
-      <h3>SUPER BONUS — Halaman 2</h3>
-      <p class="muted">Tunggu 7 detik, lalu klik Terima Reward.</p>
-      <div id="page2Ads" class="ad-slot"></div>
-      <button id="page2Reward" class="btn" disabled>Terima Reward (7)</button>
-    </div>
-  </section>
-
-  <!-- Ad container (dynamic) -->
-  <div id="adContainer" class="ad-container hidden"></div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
-  <script src="app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
