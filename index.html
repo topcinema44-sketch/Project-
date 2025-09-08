@@ -1,162 +1,472 @@
-<!DOCTYPE html>
-<html lang="id">
+<!DOCTYPE html><html lang="id" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Dashboard Earning</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUSATASK — Earning Dashboard</title>
+  <meta name="theme-color" content="#0b0f1a" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial"] },
+          colors: {
+            base: { 900: '#0b0f1a', 800: '#0e1424', 700: '#121a2c', 600: '#172037' },
+            accent: { 500: '#6ee7ff', 600: '#22d3ee', 700: '#0891b2' },
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    :root{--bg:#0f1222;--card:#171a2f;--muted:#9aa3b2;--text:#eaf0ff;--pri:#6b8afe;--pri-d:#4f6df0;}
-    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:#0c1020;color:var(--text)}
-    .wrap{max-width:960px;margin:auto;padding:24px}
-    .card{background:var(--card);padding:20px;border-radius:16px}
-    .btn{padding:12px 16px;border-radius:10px;border:none;cursor:pointer;font-weight:bold}
-    .btn.primary{background:linear-gradient(var(--pri),var(--pri-d));color:#fff}
-    .btn.secondary{background:#222;color:#fff}
-    .auth{max-width:400px;margin:10vh auto}
-    input{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #333;background:#111;color:#fff}
-    .balance{font-size:2rem;font-weight:700}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999}
-    .sheet{background:var(--card);border-radius:12px;max-width:800px;width:100%;max-height:90vh;overflow:auto}
-    header,footer{padding:12px;background:#1a1d35;position:sticky}
-    header{top:0} footer{bottom:0;display:flex;gap:10px}
-    main{padding:16px}
-    .story{line-height:1.6}
-    .adbox{margin:16px 0;padding:12px;background:#141934;border-radius:10px}
-    .sentinel{height:2px}
+    .nt-glow { box-shadow: 0 0 40px rgba(34,211,238,.25), inset 0 0 12px rgba(110,231,255,.06); }
+    .bar { background: linear-gradient(90deg, #22d3ee, #a78bfa, #22d3ee); background-size: 200% 100%; animation: move 2s linear infinite; }
+    @keyframes move { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+    .neon { text-shadow: 0 0 16px rgba(110,231,255,.5); }
+    .nt-scroll::-webkit-scrollbar { width: 8px; }
+    .nt-scroll::-webkit-scrollbar-thumb { background: #1f2a44; border-radius: 999px; }
+    .btn-disabled { opacity:.6; filter:grayscale(40%); cursor:not-allowed; }
   </style>
 </head>
-<body>
-<div id="app"></div>
-
-<!-- Templates -->
-<template id="tpl-auth">
-  <div class="auth card">
-    <h2>Masuk / Daftar</h2>
-    <input id="email" placeholder="Email">
-    <input id="pass" type="password" placeholder="Kata sandi">
-    <button class="btn primary" id="btn-login">Masuk</button>
-    <button class="btn secondary" id="btn-reg">Daftar (Auto Login)</button>
-  </div>
-</template>
-
-<template id="tpl-dash">
-  <div class="wrap">
-    <div class="card">
-      <h3>Halo, <span id="u-name"></span></h3>
-      <div>Saldo: <span class="balance" id="saldo">0</span></div>
-      <div style="margin-top:16px">
-        <button class="btn primary" id="btn-monetag">Menghasilkan</button>
-        <button class="btn primary" id="btn-xstra">XSTRA BONUS</button>
-        <button class="btn secondary" id="btn-logout">Keluar</button>
+<body class="bg-base-900 text-slate-100 min-h-screen">
+  <!-- BACKGROUND DECOR -->
+  <div class="pointer-events-none fixed inset-0 opacity-40" aria-hidden="true">
+    <div class="absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full blur-3xl bg-cyan-600/10"></div>
+    <div class="absolute -bottom-40 -right-40 w-[40rem] h-[40rem] rounded-full blur-3xl bg-fuchsia-600/10"></div>
+  </div>  <!-- LOADING SPLASH (sebelum registrasi) -->  <section id="splash" class="grid place-items-center min-h-screen">
+    <div class="p-8 rounded-2xl bg-base-800/70 nt-glow backdrop-blur-xl text-center w-full max-w-md">
+      <div class="mx-auto mb-6 w-20 h-20 grid place-items-center rounded-2xl bg-gradient-to-br from-accent-600 to-fuchsia-500 text-3xl font-black">NT</div>
+      <h1 class="text-2xl font-extrabold tracking-wide neon">NUSATASK</h1>
+      <p class="mt-2 text-slate-400">Menghubungkan Anda ke peluang penghasilan.</p>
+      <div class="mt-6 h-2 w-full rounded-full bg-base-700 overflow-hidden">
+        <div class="bar h-full w-1/3 rounded-full"></div>
       </div>
     </div>
+  </section>  <!-- AUTH CARD -->  <section id="auth" class="hidden min-h-screen grid place-items-center">
+    <div class="p-8 rounded-2xl bg-base-800/70 nt-glow backdrop-blur-xl w-full max-w-md">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 grid place-items-center rounded-xl bg-gradient-to-br from-accent-600 to-fuchsia-500 text-xl font-black">NT</div>
+        <div>
+          <h2 class="text-xl font-bold">Selamat datang di NUSATASK</h2>
+          <p class="text-sm text-slate-400">Registrasi menggunakan email. Setelah berhasil, auto login.</p>
+        </div>
+      </div>
+      <form id="authForm" class="space-y-3">
+        <input id="email" type="email" required placeholder="Email" class="w-full px-4 py-3 rounded-xl bg-base-700/70 focus:outline-none focus:ring-2 focus:ring-accent-600" />
+        <input id="password" type="password" required placeholder="Password (min 6)" minlength="6" class="w-full px-4 py-3 rounded-xl bg-base-700/70 focus:outline-none focus:ring-2 focus:ring-accent-600" />
+        <button id="registerBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent-600 to-fuchsia-500 font-semibold hover:opacity-90 transition">Daftar / Masuk</button>
+        <p id="authMsg" class="text-sm text-rose-400"></p>
+      </form>
+      <p class="mt-4 text-xs text-slate-400">Dengan mendaftar, Anda menyetujui <span class="underline">aturan anti-manipulasi</span> kami.</p>
+    </div>
+  </section>  <!-- WARNING / DISCLAIMER (setelah login) -->  <section id="warning" class="hidden min-h-screen grid place-items-center">
+    <div class="p-8 rounded-2xl bg-base-800/70 nt-glow backdrop-blur-xl w-full max-w-lg text-center">
+      <h3 class="text-2xl font-bold mb-2">Peringatan Keamanan</h3>
+      <p class="text-slate-300 leading-relaxed">Segala bentuk <span class="font-semibold text-fuchsia-300">hack, nuyul, manipulasi data</span> akan <span class="font-semibold text-rose-400">dibanned otomatis</span>. Sistem memantau anomali perangkat, IP, dan pola perilaku. 1 device 1 akun, 1 device 1 IP per 24 jam.</p>
+      <button id="continueWarn" disabled class="mt-6 w-full py-3 rounded-xl bg-base-700 text-slate-400">Continue (5)</button>
+      <p class="mt-2 text-xs text-slate-500">Anda akan dapat melanjutkan setelah 5 detik.</p>
+    </div>
+  </section>  <!-- DASHBOARD -->  <main id="app" class="hidden min-h-screen nt-scroll">
+    <header class="sticky top-0 z-20 backdrop-blur-xl bg-base-900/70 border-b border-white/5">
+      <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 grid place-items-center rounded-xl bg-gradient-to-br from-accent-600 to-fuchsia-500 text-lg font-black">NT</div>
+          <div>
+            <div class="font-bold tracking-wide">NUSATASK</div>
+            <div id="uidShort" class="text-[10px] text-slate-400"></div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-sm text-slate-400">Saldo</div>
+          <div id="balance" class="px-3 py-1 rounded-lg bg-base-800 nt-glow font-semibold">Rp 0</div>
+        </div>
+      </div>
+    </header><section class="max-w-4xl mx-auto px-4 py-8">
+  <div class="grid gap-6">
+    <!-- CARD: MENGHASILKAN (Monetag) -->
+    <div class="p-6 rounded-2xl bg-base-800/70 nt-glow">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h4 class="text-xl font-bold">MENGHASILKAN</h4>
+          <p class="text-sm text-slate-400">Monetag — Rewarded</p>
+        </div>
+        <div class="text-xs text-slate-400">Limit harian: <span id="limit1">0/20</span></div>
+      </div>
+      <div class="mt-4">
+        <button id="btn1" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent-600 to-fuchsia-500 font-semibold hover:opacity-90 transition">Tonton Iklan & Dapatkan Reward</button>
+        <div id="cd1" class="mt-2 text-sm text-slate-400"></div>
+        <div class="mt-3 h-2 w-full bg-base-700 rounded-full overflow-hidden"><div id="pb1" class="h-full bg-accent-600" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- CARD: XSTRA BONUS (Onclicka Rewarded Video 6089688) -->
+    <div class="p-6 rounded-2xl bg-base-800/70 nt-glow">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h4 class="text-xl font-bold">XSTRA BONUS</h4>
+          <p class="text-sm text-slate-400">Onclicka — TMA Rewarded Video (Spot 6089688)</p>
+        </div>
+        <div class="text-xs text-slate-400">Limit harian: <span id="limit2">0/20</span></div>
+      </div>
+      <div class="mt-4">
+        <button id="btn2" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent-600 to-fuchsia-500 font-semibold hover:opacity-90 transition">Mainkan Video & Dapatkan Reward</button>
+        <div id="cd2" class="mt-2 text-sm text-slate-400"></div>
+        <div class="mt-3 h-2 w-full bg-base-700 rounded-full overflow-hidden"><div id="pb2" class="h-full bg-accent-600" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- CARD: SUPER BONUS (Onclicka + Click Adilla) -->
+    <div class="p-6 rounded-2xl bg-base-800/70 nt-glow">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h4 class="text-xl font-bold">SUPER BONUS</h4>
+          <p class="text-sm text-slate-400">Halaman 1: Onclicka • Halaman 2: Click Adilla</p>
+        </div>
+        <div class="text-xs text-slate-400">Limit harian: <span id="limit3">0/15</span></div>
+      </div>
+      <div class="mt-4">
+        <button id="btn3" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent-600 to-fuchsia-500 font-semibold hover:opacity-90 transition">Mulai Misi 2 Halaman</button>
+        <div id="cd3" class="mt-2 text-sm text-slate-400"></div>
+        <div class="mt-3 h-2 w-full bg-base-700 rounded-full overflow-hidden"><div id="pb3" class="h-full bg-accent-600" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-500">Catatan: Jangan refresh saat iklan berjalan. Manipulasi waktu/jam perangkat tidak berpengaruh pada cooldown (pakai waktu server). Reset harian terjadi pukul <b>06:00 WIB</b>.</p>
   </div>
-</template>
 
-<!-- Overlay -->
-<div class="overlay" id="overlay">
-  <div class="sheet">
-    <header>
-      <span id="step-title">XSTRA BONUS</span>
-      <span style="float:right" id="timer">00:05</span>
-    </header>
-    <main id="flow"></main>
-    <footer>
-      <button class="btn secondary" id="btn-close">Tutup</button>
-      <button class="btn primary" id="btn-next" disabled>Lanjut</button>
-    </footer>
+  <!-- Riwayat Reward -->
+  <div id="history" class="mt-8 p-6 rounded-2xl bg-base-800/70 nt-glow">
+    <h4 class="text-lg font-bold mb-3">Riwayat Reward</h4>
+    <ul id="historyList" class="text-sm space-y-1 text-slate-400 max-h-40 overflow-y-auto nt-scroll"></ul>
   </div>
-</div>
 
-<script>
-const app=document.getElementById('app');
-const $=(s,e=document)=>e.querySelector(s);
-const LS={
-  getUser:()=>JSON.parse(localStorage.getItem('user')||'null'),
-  setUser:u=>localStorage.setItem('user',JSON.stringify(u)),
-  clear:()=>localStorage.removeItem('user'),
-  getSaldo:()=>+localStorage.getItem('saldo')||0,
-  setSaldo:v=>localStorage.setItem('saldo',v)
-};
+  <!-- Pusat Bantuan / Aturan -->
+  <div id="help" class="mt-6 p-6 rounded-2xl bg-base-800/70 nt-glow">
+    <h4 class="text-lg font-bold mb-3">Pusat Bantuan & Aturan</h4>
+    <ul class="text-sm text-slate-400 list-disc pl-5 space-y-2">
+      <li>1 device = 1 akun (fingerprint wajib). Melanggar → banned otomatis.</li>
+      <li>1 device = 1 IP / 24 jam (dicek via Cloud Function server). Melanggar → banned.</li>
+      <li>Cooldown per tombol 4 menit. Limit harian: 20 / 20 / 15. Reset 06:00 WIB.</li>
+      <li>Aktivitas tidak wajar dapat memperpanjang cooldown otomatis.</li>
+    </ul>
+  </div>
+</section>
 
-// Auth
-function renderAuth(){
-  app.innerHTML=$('#tpl-auth').innerHTML;
-  $('#btn-login').onclick=login;
-  $('#btn-reg').onclick=register;
-}
-function renderDash(){
-  app.innerHTML=$('#tpl-dash').innerHTML;
-  $('#u-name').textContent=LS.getUser()?.email;
-  $('#saldo').textContent=LS.getSaldo();
-  $('#btn-logout').onclick=()=>{LS.clear();renderAuth()};
-  $('#btn-monetag').onclick=()=>alert('Monetag ads di sini');
-  $('#btn-xstra').onclick=openXstra;
-}
-function login(){
-  let u=LS.getUser(),e=$('#email').value,p=$('#pass').value;
-  if(u&&u.email===e&&u.pass===p)renderDash();else alert('Login gagal');
-}
-function register(){
-  let e=$('#email').value,p=$('#pass').value;
-  LS.setUser({email:e,pass:p});renderDash();
-}
+  </main>  <!-- SUPER BONUS: HALAMAN 1 (scroll A-Z + Onclicka Inpage) -->  <section id="page1" class="hidden min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+      <h5 class="text-xl font-bold mb-2">SUPER BONUS — Halaman 1</h5>
+      <p class="text-slate-400">Scroll ke bawah sampai habis, tombol Continue akan aktif setelah 5 detik.</p>
+      <div id="page1Ads" class="my-4"></div>
+      <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2" id="letters"></div>
+      <div id="page1Spacer" class="h-[1200px]"></div>
+      <button id="page1Continue" disabled class="w-full py-3 rounded-xl bg-base-700 text-slate-400">Continue (5)</button>
+    </div>
+  </section>  <!-- SUPER BONUS: HALAMAN 2 (Click Adilla + Reward 7s) -->  <section id="page2" class="hidden min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+      <h5 class="text-xl font-bold mb-2">SUPER BONUS — Halaman 2</h5>
+      <p class="text-slate-400">Tunggu 7 detik, lalu klik tombol untuk terima reward.</p>
+      <div id="page2Ads" class="my-4 space-y-4"></div>
+      <button id="page2Reward" disabled class="w-full py-3 rounded-xl bg-base-700 text-slate-400">Terima Reward (7)</button>
+    </div>
+  </section>  <!-- Wadah khusus script iklan agar tidak bocor ke halaman lain -->  <div id="adContainer" class="hidden"></div>  <!-- ================== FIREBASE + APP LOGIC ================== -->  <script type="module">
+    // ================== FIREBASE INIT ==================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, set, update, get, runTransaction } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
 
-// ClickAdilla loader (on-demand)
-function loadClickAdilla(cb){
-  if(window.adillaLoaded){cb&&cb();return;}
-  var s=document.createElement("script");
-  s.src="https://js.wpadmngr.com/static/adManager.js"; // base endpoint
-  s.onload=()=>{window.adillaLoaded=true;cb&&cb();};
-  document.head.appendChild(s);
-}
+    // ====== CONFIG (punyamu) ======
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdlvPMWThdEUk2D92Tg_mQSHbGO4LG2AE",
+      authDomain: "nusa-7a52a.firebaseapp.com",
+      databaseURL: "https://nusa-7a52a-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "nusa-7a52a",
+      storageBucket: "nusa-7a52a.firebasestorage.app",
+      messagingSenderId: "72016839114",
+      appId: "1:72016839114:web:0bc8978a826619f7ad8f33",
+      measurementId: "G-HBZN4WGKWX"
+    };
 
-// Overlay Flow
-const overlay=$('#overlay'),flow=$('#flow'),btnNext=$('#btn-next'),timerEl=$('#timer');
-let step=1,waited=false,bottom=false,count=5,tick,obs;
+    const appFB = initializeApp(firebaseConfig);
+    const auth = getAuth(appFB);
+    const db = getDatabase(appFB);
+    const functions = getFunctions(appFB);
 
-function openXstra(){step=1;overlay.style.display='flex';build1();}
-function closeXstra(){overlay.style.display='none';cleanup();}
-$('#btn-close').onclick=closeXstra;
-btnNext.onclick=()=>{if(step==1){step=2;build2()}else{finish()}};
+    // ========= SERVER TIME (anti ganti jam HP) =========
+    let serverOffset = 0; // ms
+    onValue(ref(db, "/.info/serverTimeOffset"), snap => { serverOffset = snap.val() || 0; });
+    const nowServer = () => Date.now() + serverOffset;
 
-function cleanup(){clearInterval(tick);if(obs)obs.disconnect();flow.innerHTML='';}
-function resetGate(){
-  waited=false;bottom=false;btnNext.disabled=true;count=5;timerEl.textContent="00:05";
-  clearInterval(tick);tick=setInterval(()=>{count--;timerEl.textContent="00:0"+count;if(count<=0){clearInterval(tick);waited=true;unlock()}},1000);
-}
-function watchBottom(el){obs=new IntersectionObserver(e=>{if(e[0].isIntersecting){bottom=true;unlock()}},{root:$('.sheet'),threshold:1});obs.observe(el)}
-function unlock(){if(waited&&bottom)btnNext.disabled=false;}
+    // ========= HARIAN RESET PUKUL 06:00 WIB =========
+    const WIB_OFFSET = 7*60*60*1000; // UTC+7
+    const SIX_HOURS = 6*60*60*1000;
+    const cycleKey = () => { const t = nowServer() + WIB_OFFSET - SIX_HOURS; return new Date(t).toISOString().slice(0,10); };
 
-function build1(){
-  cleanup();btnNext.textContent="Lanjut";resetGate();
-  loadClickAdilla(()=>{
-    flow.innerHTML=`
-      <div class="adbox"><div data-inpage-id="1463186"></div></div>
-      <div class="story"><h3>Halaman 1</h3><p>Cerita panjang... scroll ke bawah, tunggu 5 detik.</p><p style="margin-top:1000px">Sudah hampir sampai bawah...</p></div>
-      <div class="sentinel"></div>`;
-    watchBottom($('.sentinel',flow));
+    // ========= UI HELPERS =========
+    const $ = s => document.querySelector(s);
+    const show = id => document.getElementById(id).classList.remove('hidden');
+    const hide = id => document.getElementById(id).classList.add('hidden');
+    const formatRp = n => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0);
+    const formatMMSS = ms => { const s=Math.ceil(ms/1000), m=Math.floor(s/60), r=s%60; return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`; };
+
+    // ========= ELEMENTS =========
+    const continueWarnBtn = $('#continueWarn');
+    const balanceEl = $('#balance');
+    const uidShortEl = $('#uidShort');
+    const btns = [$('#btn1'), $('#btn2'), $('#btn3')];
+    const cds  = [$('#cd1'),  $('#cd2'),  $('#cd3')];
+    const pbs  = [$('#pb1'),  $('#pb2'),  $('#pb3')];
+    const limitsLbl = [$('#limit1'), $('#limit2'), $('#limit3')];
+    const page1Continue = $('#page1Continue');
+    const page2Reward = $('#page2Reward');
+
+    // ========= PARAMETER REWARD =========
+    const REWARDS = [100, 150, 250]; // IDR (silakan atur)
+    const COOLDOWN_MS = 4 * 60 * 1000; // 4 menit
+    const LIMITS = [20, 20, 15];
+
+    // Splash -> Auth
+    setTimeout(()=>{ hide('splash'); show('auth'); }, 1000);
+
+    // ====== AUTH (email/pass + auto register) ======
+    document.getElementById('authForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value.trim();
+      const msg   = document.getElementById('authMsg');
+      msg.textContent = '';
+      try { await signInWithEmailAndPassword(auth, email, pass); }
+      catch { try { await createUserWithEmailAndPassword(auth, email, pass); } catch(err){ msg.textContent = err.message || 'Gagal autentikasi'; } }
+    });
+
+    // ====== FINGERPRINT WAJIB ======
+    const getFingerprint = () => {
+      const ua = navigator.userAgent;
+      const lang = navigator.language;
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'WIB';
+      const sr = `${screen.width}x${screen.height}`;
+      const mem = navigator.deviceMemory || 'NA';
+      return btoa(`${ua}|${lang}|${tz}|${sr}|${mem}`);
+    };
+
+    async function ensureFingerprint(uid){
+      const fp = getFingerprint();
+      const fpRef = ref(db, `fingerprints/${fp}`);
+      const snap = await get(fpRef);
+      if (snap.exists() && snap.val() !== uid){
+        await update(ref(db, `users/${uid}`), { banned: true });
+        alert('Perangkat ini sudah digunakan untuk akun lain. Akun dibanned.');
+        return false;
+      }
+      await set(fpRef, uid);
+      return true;
+    }
+
+    // ====== AFTER AUTH ======
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      const uRef = ref(db, `users/${user.uid}`);
+      const s = await get(uRef);
+      if (!s.exists()){
+        await set(uRef, { createdAt: nowServer(), balance: 0, banned: false, usage: {}, history: [] });
+      }
+
+      // Fingerprint wajib
+      const okFP = await ensureFingerprint(user.uid);
+      if (!okFP) return;
+
+      // IP logging via Cloud Function (1 device 1 IP / 24 jam)
+      try { await httpsCallable(functions, 'logAccess')({}); } catch(e){ console.warn('logAccess:', e.message); }
+
+      uidShortEl.textContent = `UID: ${user.uid.slice(0,6)}…${user.uid.slice(-4)}`;
+      hide('auth'); show('warning');
+      countdownBtn(continueWarnBtn, 5, ()=>{ enableBtn(continueWarnBtn, 'Continue'); });
+      continueWarnBtn.onclick = () => { hide('warning'); show('app'); bindDashboard(user.uid); };
+    });
+
+    // ====== DASHBOARD BIND ======
+    function bindDashboard(uid){
+      // saldo live
+      onValue(ref(db, `users/${uid}/balance`), s=> balanceEl.textContent = formatRp(s.val()));
+
+      // usage live
+      const useRef = ref(db, `users/${uid}/usage/${cycleKey()}`);
+      onValue(useRef, snap => {
+        const d = snap.val() || { counts:[0,0,0], last:[0,0,0] };
+        for(let i=0;i<3;i++){
+          const count = d.counts?.[i] || 0;
+          const last  = d.last?.[i] || 0;
+          limitsLbl[i].textContent = `${count}/${LIMITS[i]}`;
+          pbs[i].style.width = `${Math.min(100, Math.round(count*100/LIMITS[i]))}%`;
+          applyCooldownUI(btns[i], cds[i], last);
+          if (!btns[i].dataset.bound){ btns[i].dataset.bound='1'; (i===2? btns[i].onclick = ()=>startSuperBonus(uid) : btns[i].onclick = ()=>startAd(uid,i)); }
+        }
+      });
+
+      // history live (last 30)
+      onValue(ref(db, `users/${uid}/history`), snap => {
+        const list = snap.val() || [];
+        const ul = document.getElementById('historyList'); ul.innerHTML='';
+        list.slice(-30).reverse().forEach(item=>{
+          const li = document.createElement('li');
+          const when = (typeof item.time === 'number') ? new Date(item.time) : new Date();
+          li.textContent = `${when.toLocaleString()} • +${formatRp(item.reward)} • Tombol ${Number(item.type)+1}`;
+          ul.appendChild(li);
+        });
+      });
+
+      // generate A-Z untuk page1
+      const lettersWrap = document.getElementById('letters');
+      if (lettersWrap && !lettersWrap.dataset.done){
+        lettersWrap.dataset.done='1';
+        const letters = Array.from({length:26},(_,i)=>String.fromCharCode(65+i));
+        letters.forEach(ch=>{ const d=document.createElement('div'); d.className='h-20 rounded-xl bg-base-800/60 grid place-items-center text-2xl font-black'; d.textContent=ch; lettersWrap.appendChild(d); });
+      }
+    }
+
+    // ====== UI STATES ======
+    function applyCooldownUI(btn, label, lastTs){
+      const rem = cooldownRemaining(lastTs);
+      if (rem>0){
+        btn.disabled = true; btn.classList.add('btn-disabled');
+        label.textContent = `Cooldown: ${formatMMSS(rem)}`;
+        timerLoop(btn, label, lastTs);
+      } else {
+        btn.disabled = false; btn.classList.remove('btn-disabled');
+        label.textContent = '';
+      }
+    }
+
+    function timerLoop(btn, label, lastTs){
+      const t = setInterval(()=>{
+        const rem=cooldownRemaining(lastTs);
+        if (rem<=0){ clearInterval(t); btn.disabled=false; btn.classList.remove('btn-disabled'); label.textContent=''; }
+        else { label.textContent = `Cooldown: ${formatMMSS(rem)}`; }
+      }, 1000);
+    }
+
+    function cooldownRemaining(lastTs){ if (!lastTs) return 0; const passed = nowServer()-lastTs; return Math.max(0, COOLDOWN_MS - passed); }
+
+    function countdownBtn(btn, sec, done){ let left=sec; const base=btn.textContent.replace(/.*/,'').trim(); const tick=()=>{ btn.textContent = `${base} (${left})`; if(left<=0) return done(); left--; setTimeout(tick,1000); }; tick(); }
+    function enableBtn(btn, txt){ btn.textContent=txt; btn.disabled=false; btn.classList.remove('bg-base-700','text-slate-400'); btn.classList.add('bg-gradient-to-r','from-accent-600','to-fuchsia-500','font-semibold'); }
+
+    // ====== GUARD: boleh lanjut? ======
+    async function canProceed(uid, idx){
+      const uDayRef = ref(db, `users/${uid}/usage/${cycleKey()}`);
+      const snap = await get(uDayRef); const d = snap.val() || { counts:[0,0,0], last:[0,0,0] };
+      if ((d.counts?.[idx]||0) >= LIMITS[idx]){ alert('Sudah mencapai batas harian.'); return false; }
+      if (cooldownRemaining(d.last?.[idx]||0) > 0){ alert('Masih cooldown, tunggu sampai selesai.'); return false; }
+      return true;
+    }
+
+    // ====== REWARD WRITE (atomic) ======
+    async function writeReward(uid, idx){
+      const uRef = ref(db, `users/${uid}`);
+      const key = cycleKey();
+      await runTransaction(uRef, (ud) => {
+        if (!ud) return ud; if (ud.banned) return;
+        ud.balance = (ud.balance||0) + REWARDS[idx];
+        ud.usage = ud.usage || {}; ud.usage[key] = ud.usage[key] || { counts:[0,0,0], last:[0,0,0] };
+        const u = ud.usage[key];
+        if ((u.counts[idx]||0) >= LIMITS[idx]) return ud; // guard
+        u.counts[idx] = (u.counts[idx]||0) + 1; u.last[idx] = nowServer();
+        ud.history = ud.history || []; ud.history.push({ time: nowServer(), reward: REWARDS[idx], type: idx });
+        ud._lastWriteAt = nowServer();
+        return ud;
+      });
+    }
+
+    // ====== DYNAMIC AD LOADER (iklan hanya saat tombol ditekan) ======
+    function loadAdScript(src, attrs = {}, containerId = 'adContainer'){
+      const cont = document.getElementById(containerId);
+      cont.classList.remove('hidden');
+      cont.innerHTML = '';
+      const s = document.createElement('script');
+      s.src = src; s.async = true;
+      Object.entries(attrs).forEach(([k,v])=> s.setAttribute(k, v));
+      cont.appendChild(s);
+      return s;
+    }
+
+    // ====== AD FLOWS ======
+    async function startAd(uid, idx){
+      const ok = await canProceed(uid, idx); if (!ok) return;
+      try {
+        if (idx===0){ // Monetag
+          const s = loadAdScript('//libtl.com/sdk.js', { 'data-zone':'9779635', 'data-sdk':'show_9779635' });
+          await new Promise(res=>{ s.onload = res; setTimeout(res, 10000); });
+          if (typeof window.show_9779635 === 'function') { await window.show_9779635(); }
+          alert('You have seen an ad!');
+        }
+        if (idx===1){ // Onclicka Rewarded Video (spot 6089688)
+          loadAdScript('https://js.onclckmn.com/static/onclicka.js');
+          await new Promise(r=>setTimeout(r,10000)); // fallback durasi minimal
+        }
+        await writeReward(uid, idx);
+      } catch(e){ console.warn('Ad error', e); }
+    }
+
+    function startSuperBonus(uid){
+      canProceed(uid, 2).then(ok=>{
+        if (!ok) return;
+        hide('app'); show('page1');
+        // inject Onclicka Inpage di halaman 1
+        loadAdScript('https://js.onclckmn.com/static/onclicka.js', { 'data-admpid':'369301' }, 'page1Ads');
+
+        page1Continue.disabled = true; page1Continue.classList.add('bg-base-700','text-slate-400');
+        const onScroll = () => {
+          const bottom = (window.scrollY + window.innerHeight) >= document.body.scrollHeight - 10;
+          if (bottom && page1Continue.disabled){ countdownBtn(page1Continue, 5, ()=> enableBtn(page1Continue, 'Continue')); window.removeEventListener('scroll', onScroll); }
+        };
+        window.addEventListener('scroll', onScroll);
+        page1Continue.onclick = () => { hide('page1'); show('page2'); page2Sequence(uid); };
+      });
+    }
+
+    function page2Sequence(uid){
+      // Inject Click Adilla (inpage + banner) ke page2Ads
+      const cont = document.getElementById('page2Ads');
+      cont.innerHTML = '';
+      loadAdScript('https://js.wpadmngr.com/static/adManager.js', { 'data-admpid':'369167' }, 'page2Ads');
+      const in1 = document.createElement('div'); in1.setAttribute('data-inpage-id','1463186'); cont.appendChild(in1);
+      const in2 = document.createElement('div'); in2.setAttribute('data-inpage-id','1463187'); cont.appendChild(in2);
+      const bn  = document.createElement('div'); bn.setAttribute('data-banner-id','1463188'); cont.appendChild(bn);
+
+      page2Reward.disabled = true; page2Reward.classList.add('bg-base-700','text-slate-400');
+      countdownBtn(page2Reward, 7, ()=> enableBtn(page2Reward, 'Terima Reward'));
+      page2Reward.onclick = async () => { await writeReward(uid, 2); hide('page2'); show('app'); window.scrollTo({top:0,behavior:'smooth'}); };
+    }
+
+  </script>  <!-- ================== CLOUD FUNCTIONS (server) — simpan sebagai functions/index.js ==================
+  const functions = require('firebase-functions');
+  const admin = require('firebase-admin');
+  admin.initializeApp();
+  const db = admin.database();
+
+  // Kunci hari = reset 06:00 WIB
+  function cycleKey(){
+    const now = Date.now(); const WIB = 7*60*60*1000; const SIX = 6*60*60*1000;
+    return new Date(now + WIB - SIX).toISOString().slice(0,10);
+  }
+
+  // 1 device = 1 IP / 24 jam
+  exports.logAccess = functions.https.onCall(async (data, context) => {
+    const uid = context.auth && context.auth.uid; if (!uid) throw new functions.https.HttpsError('unauthenticated');
+    const ip = context.rawRequest.ip || 'unknown';
+    const key = cycleKey();
+    const ref = db.ref(`ipLogs/${key}/${ip}`);
+    const snap = await ref.once('value');
+    const val = snap.val();
+    if (val && val !== uid) {
+      await db.ref(`users/${uid}/banned`).set(true);
+      throw new functions.https.HttpsError('permission-denied','IP sudah dipakai akun lain pada periode ini');
+    }
+    await ref.set(uid);
+    return { ok:true };
   });
-}
-function build2(){
-  cleanup();btnNext.textContent="Selesai";resetGate();
-  loadClickAdilla(()=>{
-    flow.innerHTML=`
-      <div class="adbox"><div data-inpage-id="1463187"></div></div>
-      <div class="story"><h3>Halaman 2</h3><p>Cerita panjang lagi... scroll & tunggu 5 detik.</p><p style="margin-top:1000px">Sedikit lagi...</p></div>
-      <div class="adbox"><div data-banner-id="1463188"></div></div>
-      <div class="sentinel"></div>`;
-    watchBottom($('.sentinel',flow));
-  });
-}
-function finish(){
-  let s=LS.getSaldo()+100;LS.setSaldo(s);
-  alert("Reward +100! Saldo baru: "+s);
-  renderDash();closeXstra();
-}
 
-// Boot
-if(LS.getUser())renderDash();else renderAuth();
-</script>
+  */>
 </body>
 </html>
